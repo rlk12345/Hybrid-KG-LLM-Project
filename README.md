@@ -14,6 +14,20 @@ Hybrid multi-hop reasoning over knowledge graphs with LLM alignment and optional
 - **Training**: A simple entrypoint for DPO fine-tuning on hybrid KG reasoning examples.
 - **Evaluation**: Scripts for link prediction and multi-hop QA on generated/test splits.
 
+## System Requirements
+
+**✅ Works on Standard Machines (Laptops/Desktops):**
+- Dataset preparation (all features)
+- Visualization and graph rendering
+- Evaluation scripts
+- Training with default GPT-2 model (~500MB RAM, CPU-only)
+
+**⚠️ Requires GPU or High-End Machine:**
+- Training with large models (Mistral-7B, LLaMA, etc.) - requires 16GB+ RAM or GPU
+- See "Training" section for details on using large models
+
+**Note:** The default configuration uses GPT-2, which works on any machine. Large models can be used by overriding the model name, but require appropriate hardware.
+
 ## High-level Architecture
 
 1. Data is prepared from raw KG triples and entity texts using `scripts/prepare_hybrid_dataset.py`.
@@ -33,9 +47,17 @@ Hybrid multi-hop reasoning over knowledge graphs with LLM alignment and optional
 
 **Install Graphviz:**
 
-- **macOS**: `brew install graphviz`
-- **Ubuntu/Debian**: `sudo apt-get install graphviz`
+- **macOS**: 
+  ```bash
+  brew install graphviz
+  ```
+- **Ubuntu/Debian**: 
+  ```bash
+  sudo apt-get install graphviz
+  ```
 - **Windows**: Download from [Graphviz website](https://graphviz.org/download/) or use `choco install graphviz`
+
+**Note:** The `graphviz` Python package (in requirements.txt) only needs the system Graphviz binary. The codebase uses NetworkX and matplotlib for visualization, which don't require additional compilation.
 
 ### Python Environment
 
@@ -78,6 +100,8 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 pip install -r requirements.txt
 ```
 
+**Note:** If you encounter a `pygraphviz` build error, this is expected if you have an old version of `requirements.txt`. The current version has removed `pygraphviz` as it's not used in the codebase. Simply skip that package or update to the latest `requirements.txt`.
+
 ### Step 4: Set PYTHONPATH
 
 **Important**: You must set the PYTHONPATH to the project root for imports to work correctly.
@@ -110,6 +134,15 @@ python -c "from src.config import HybridConfig; print('Import successful!')"
 
 ## Quick Start (Testing the Setup)
 
+**Option 1: Run Complete Demo (Recommended)**
+
+```bash
+# This runs everything and verifies it all works
+bash run_demo.sh
+```
+
+**Option 2: Step-by-Step Verification**
+
 **Step 1: Verify Installation**
 
 ```bash
@@ -139,7 +172,20 @@ python scripts/prepare_hybrid_dataset.py \
 ls data/hybrid_test/  # Should show train.jsonl, val.jsonl, and test.jsonl
 ```
 
-If both steps complete without errors, your setup is correct!
+**Step 3: Test Training (Safe - Uses Small Model)**
+
+```bash
+# Test training with default GPT-2 (safe on any machine)
+python3 -c "
+from src.hybrid_dpo import train_hybrid_dpo
+train_hybrid_dpo({
+    'data': {'train_path': 'data/hybrid_test/train.jsonl', 'eval_path': 'data/hybrid_test/val.jsonl'},
+    'dpo': {'output_dir': 'outputs/test', 'num_train_epochs': 1, 'per_device_train_batch_size': 1}
+})
+"
+```
+
+If all steps complete without errors, your setup is correct!
 
 ## Directory Structure
 
@@ -233,14 +279,45 @@ python scripts/prepare_hybrid_dataset.py \
   --sns_threshold 0.8
 ```
 
+## Quick Demo (Verify Everything Works)
+
+Run this to test all components on a standard machine:
+
+```bash
+bash run_demo.sh
+```
+
+This will:
+1. Verify setup
+2. Prepare a dataset with train/val/test splits
+3. Create visualizations
+4. Run training with a small model (GPT-2, safe on any machine)
+
+**Expected time:** 5-10 minutes on a standard laptop
+
 ## Training (Hybrid DPO)
 
+### Resource Requirements
+
+**Default Configuration (GPT-2):**
+- ✅ Works on any machine (laptop, desktop)
+- ✅ ~500MB RAM
+- ✅ CPU-only training
+- ✅ ~5-10 minutes for small datasets
+
+**Large Models (Mistral-7B, LLaMA, etc.):**
+- ⚠️ Requires GPU with 16GB+ VRAM OR
+- ⚠️ Requires 16GB+ RAM for CPU training
+- ⚠️ May crash on laptops without sufficient resources
+- See "Using Large Models" section below
+
 ### Python API
+
+**Basic usage (default GPT-2, safe on any machine):**
 
 ```python
 from src.hybrid_dpo import train_hybrid_dpo
 
-# Basic usage
 train_hybrid_dpo({
     "data": {
         "train_path": "data/hybrid/train.jsonl",
@@ -253,8 +330,12 @@ train_hybrid_dpo({
         "learning_rate": 5e-6
     }
 })
+```
 
-# Advanced: override model, SNS settings, etc.
+**Using large models (requires GPU or high-end machine):**
+
+```python
+# Override with large model - ONLY if you have GPU/16GB+ RAM
 train_hybrid_dpo({
     "model": {
         "base_model_name_or_path": "mistralai/Mistral-7B-Instruct-v0.2"
@@ -273,6 +354,8 @@ train_hybrid_dpo({
     }
 })
 ```
+
+**⚠️ Warning:** Large models (7B+ parameters) will crash on laptops without sufficient RAM/GPU. Use the default GPT-2 for testing, or use cloud resources/HPC for large models.
 
 ### CLI Launcher (Shell Script)
 
@@ -392,6 +475,31 @@ export PYTHONPATH="${PYTHONPATH}:$(pwd)"
 **Problem:** `FileNotFoundError: [Errno 2] No such file or directory: 'dot'`
 
 **Solution:** Install Graphviz system package (see Prerequisites section).
+
+**Problem:** `pygraphviz` build error: `'graphviz/cgraph.h' file not found`
+
+**Solution:** This error occurs if `pygraphviz` is in your requirements. However, `pygraphviz` is **not used** in this codebase and has been removed from `requirements.txt`. The visualization code uses NetworkX and matplotlib instead. If you still need `pygraphviz` for other purposes:
+
+**macOS:**
+```bash
+# First install Graphviz
+brew install graphviz
+
+# Then install pygraphviz with proper paths
+pip install pygraphviz \
+  --global-option=build_ext \
+  --global-option="-I$(brew --prefix graphviz)/include" \
+  --global-option="-L$(brew --prefix graphviz)/lib"
+```
+
+**Linux:**
+```bash
+# Install development headers
+sudo apt-get install graphviz graphviz-dev
+
+# Then install pygraphviz normally
+pip install pygraphviz
+```
 
 ### CUDA/GPU Issues
 

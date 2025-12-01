@@ -4,7 +4,9 @@ from typing import List, Optional
 
 @dataclass
 class ModelConfig:
-    base_model_name_or_path: str = "mistralai/Mistral-7B-Instruct-v0.2"
+    # Default to GPT-2 (small, works on any machine) instead of Mistral-7B (requires GPU/16GB+ RAM)
+    # For production training, override with: "mistralai/Mistral-7B-Instruct-v0.2" or other large models
+    base_model_name_or_path: str = "gpt2"
     vision_model_name_or_path: Optional[str] = None  # e.g., "liuhaotian/llava-v1.5-7b"
     lora_r: int = 16
     lora_alpha: int = 32

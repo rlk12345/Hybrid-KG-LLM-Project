@@ -26,7 +26,8 @@ if __name__ == "__main__":
             if not line.strip():
                 continue
             obj = json.loads(line)
-            golds.append(str(obj.get("answer", "")))
+            # Support both "answer" and "chosen" fields
+            golds.append(str(obj.get("answer") or obj.get("chosen", "")))
 
     with open(args.pred_jsonl, "r", encoding="utf-8") as f:
         for line in f:

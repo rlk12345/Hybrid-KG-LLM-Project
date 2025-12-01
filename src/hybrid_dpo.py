@@ -88,7 +88,7 @@ def train_hybrid_dpo(config: Dict[str, Any]) -> None:
         ref_model=None,
         train_dataset=train_ds,
         eval_dataset=eval_ds,
-        tokenizer=tokenizer,
+        processing_class=tokenizer,  # Changed from tokenizer to processing_class for trl >= 0.25.0
         args=training_args,
     )
 

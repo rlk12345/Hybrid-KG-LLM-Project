@@ -1,0 +1,200 @@
+{"head": "Entity_327", "relation": "targets", "tail": "Inflammation"}
+{"head": "Entity_379", "relation": "prevents", "tail": "Entity_125"}
+{"head": "Entity_114", "relation": "associated_with", "tail": "Entity_377"}
+{"head": "Entity_52", "relation": "metabolizes", "tail": "Entity_379"}
+{"head": "Entity_279", "relation": "targets", "tail": "Entity_302"}
+{"head": "Entity_216", "relation": "treats", "tail": "Metabolism"}
+{"head": "Entity_47", "relation": "causes", "tail": "Entity_119"}
+{"head": "Entity_258", "relation": "binds_to", "tail": "Type 2 Diabetes"}
+{"head": "Entity_287", "relation": "causes", "tail": "Entity_366"}
+{"head": "Entity_332", "relation": "produces", "tail": "Entity_279"}
+{"head": "Entity_214", "relation": "causes", "tail": "Entity_229"}
+{"head": "Entity_301", "relation": "prevents", "tail": "Entity_414"}
+{"head": "Insulin", "relation": "consumes", "tail": "Entity_412"}
+{"head": "Entity_81", "relation": "produces", "tail": "Entity_216"}
+{"head": "Entity_174", "relation": "prevents", "tail": "Entity_79"}
+{"head": "Entity_110", "relation": "consumes", "tail": "Entity_172"}
+{"head": "Entity_52", "relation": "targets", "tail": "Entity_194"}
+{"head": "Entity_49", "relation": "inhibits", "tail": "Entity_433"}
+{"head": "Entity_176", "relation": "binds_to", "tail": "Entity_135"}
+{"head": "Entity_413", "relation": "treats", "tail": "Entity_373"}
+{"head": "Entity_235", "relation": "interacts_with", "tail": "Entity_63"}
+{"head": "Entity_193", "relation": "targets", "tail": "Entity_282"}
+{"head": "Entity_150", "relation": "upregulates", "tail": "Entity_321"}
+{"head": "Entity_316", "relation": "downregulates", "tail": "Entity_185"}
+{"head": "Entity_295", "relation": "causes", "tail": "Entity_360"}
+{"head": "Biological Process A", "relation": "treats", "tail": "Entity_338"}
+{"head": "Entity_116", "relation": "consumes", "tail": "Entity_148"}
+{"head": "Entity_40", "relation": "upregulates", "tail": "Entity_119"}
+{"head": "Entity_51", "relation": "activates", "tail": "Entity_142"}
+{"head": "Entity_232", "relation": "metabolizes", "tail": "Entity_427"}
+{"head": "Entity_186", "relation": "associated_with", "tail": "Entity_189"}
+{"head": "Entity_181", "relation": "causes", "tail": "Entity_343"}
+{"head": "Entity_136", "relation": "produces", "tail": "Entity_349"}
+{"head": "Entity_331", "relation": "targets", "tail": "Entity_311"}
+{"head": "Entity_325", "relation": "associated_with", "tail": "Entity_273"}
+{"head": "Entity_373", "relation": "causes", "tail": "Entity_83"}
+{"head": "Entity_236", "relation": "activates", "tail": "Entity_138"}
+{"head": "Entity_327", "relation": "produces", "tail": "Entity_285"}
+{"head": "Entity_112", "relation": "metabolizes", "tail": "Entity_166"}
+{"head": "Entity_431", "relation": "consumes", "tail": "Entity_397"}
+{"head": "Symptom Y", "relation": "causes", "tail": "Entity_420"}
+{"head": "Glucose", "relation": "consumes", "tail": "Entity_161"}
+{"head": "Entity_205", "relation": "prevents", "tail": "Pathway 1"}
+{"head": "Entity_108", "relation": "downregulates", "tail": "Entity_290"}
+{"head": "Entity_367", "relation": "inhibits", "tail": "Entity_108"}
+{"head": "Entity_335", "relation": "regulates", "tail": "Entity_202"}
+{"head": "Entity_329", "relation": "regulates", "tail": "Entity_73"}
+{"head": "Entity_135", "relation": "associated_with", "tail": "Entity_126"}
+{"head": "Entity_381", "relation": "interacts_with", "tail": "Entity_275"}
+{"head": "Entity_134", "relation": "produces", "tail": "Entity_299"}
+{"head": "Entity_219", "relation": "downregulates", "tail": "Entity_298"}
+{"head": "Entity_204", "relation": "inhibits", "tail": "Entity_112"}
+{"head": "Entity_70", "relation": "interacts_with", "tail": "Entity_252"}
+{"head": "Entity_46", "relation": "consumes", "tail": "Enzyme Z"}
+{"head": "Entity_56", "relation": "associated_with", "tail": "Entity_321"}
+{"head": "Entity_81", "relation": "consumes", "tail": "Entity_348"}
+{"head": "Entity_216", "relation": "binds_to", "tail": "Drug Delta"}
+{"head": "Entity_197", "relation": "activates", "tail": "Entity_305"}
+{"head": "Entity_239", "relation": "interacts_with", "tail": "Entity_128"}
+{"head": "Entity_283", "relation": "upregulates", "tail": "PTGS1"}
+{"head": "Entity_348", "relation": "produces", "tail": "Entity_58"}
+{"head": "Entity_349", "relation": "downregulates", "tail": "Entity_274"}
+{"head": "Entity_384", "relation": "prevents", "tail": "Entity_393"}
+{"head": "Entity_328", "relation": "inhibits", "tail": "Entity_57"}
+{"head": "Entity_150", "relation": "activates", "tail": "Entity_80"}
+{"head": "Entity_232", "relation": "treats", "tail": "Entity_369"}
+{"head": "Entity_368", "relation": "prevents", "tail": "Entity_256"}
+{"head": "Entity_390", "relation": "associated_with", "tail": "Entity_259"}
+{"head": "Entity_54", "relation": "upregulates", "tail": "Entity_320"}
+{"head": "Entity_152", "relation": "upregulates", "tail": "Entity_327"}
+{"head": "Entity_259", "relation": "binds_to", "tail": "Entity_101"}
+{"head": "Entity_78", "relation": "inhibits", "tail": "Entity_390"}
+{"head": "Entity_82", "relation": "interacts_with", "tail": "Entity_398"}
+{"head": "Entity_271", "relation": "downregulates", "tail": "Aspirin"}
+{"head": "Entity_306", "relation": "inhibits", "tail": "Entity_250"}
+{"head": "INS", "relation": "targets", "tail": "Entity_185"}
+{"head": "Entity_425", "relation": "consumes", "tail": "Entity_157"}
+{"head": "Entity_122", "relation": "treats", "tail": "Entity_123"}
+{"head": "Entity_290", "relation": "targets", "tail": "Entity_43"}
+{"head": "Entity_374", "relation": "regulates", "tail": "Entity_417"}
+{"head": "Biological Process A", "relation": "consumes", "tail": "Entity_272"}
+{"head": "Entity_392", "relation": "associated_with", "tail": "Entity_65"}
+{"head": "Entity_337", "relation": "regulates", "tail": "Entity_281"}
+{"head": "Entity_84", "relation": "prevents", "tail": "Entity_270"}
+{"head": "Entity_310", "relation": "activates", "tail": "Entity_108"}
+{"head": "Entity_276", "relation": "consumes", "tail": "Entity_373"}
+{"head": "Entity_353", "relation": "causes", "tail": "Entity_365"}
+{"head": "Entity_159", "relation": "activates", "tail": "Entity_343"}
+{"head": "Entity_332", "relation": "inhibits", "tail": "Entity_224"}
+{"head": "Entity_264", "relation": "regulates", "tail": "Entity_61"}
+{"head": "Entity_126", "relation": "causes", "tail": "Drug Delta"}
+{"head": "Entity_173", "relation": "treats", "tail": "Entity_301"}
+{"head": "Entity_283", "relation": "causes", "tail": "Entity_301"}
+{"head": "Entity_112", "relation": "treats", "tail": "Biological Process B"}
+{"head": "Entity_362", "relation": "metabolizes", "tail": "Drug Beta"}
+{"head": "Entity_117", "relation": "targets", "tail": "Glucose"}
+{"head": "Entity_169", "relation": "targets", "tail": "Entity_263"}
+{"head": "Entity_121", "relation": "prevents", "tail": "Entity_342"}
+{"head": "Entity_248", "relation": "causes", "tail": "Entity_276"}
+{"head": "Entity_67", "relation": "produces", "tail": "Entity_292"}
+{"head": "Entity_295", "relation": "regulates", "tail": "Entity_124"}
+{"head": "Entity_401", "relation": "regulates", "tail": "Entity_413"}
+{"head": "Entity_208", "relation": "causes", "tail": "Entity_48"}
+{"head": "Entity_49", "relation": "metabolizes", "tail": "Entity_220"}
+{"head": "Entity_181", "relation": "activates", "tail": "Entity_210"}
+{"head": "Entity_239", "relation": "upregulates", "tail": "Entity_373"}
+{"head": "Symptom X", "relation": "metabolizes", "tail": "Entity_334"}
+{"head": "Entity_330", "relation": "targets", "tail": "Drug Gamma"}
+{"head": "Entity_206", "relation": "produces", "tail": "Entity_173"}
+{"head": "Entity_409", "relation": "upregulates", "tail": "Entity_55"}
+{"head": "Entity_127", "relation": "causes", "tail": "Entity_97"}
+{"head": "Entity_274", "relation": "regulates", "tail": "Entity_71"}
+{"head": "Entity_216", "relation": "associated_with", "tail": "Entity_142"}
+{"head": "Entity_236", "relation": "causes", "tail": "Entity_38"}
+{"head": "Entity_226", "relation": "consumes", "tail": "Entity_281"}
+{"head": "Entity_50", "relation": "treats", "tail": "Entity_333"}
+{"head": "Entity_276", "relation": "upregulates", "tail": "AMPK"}
+{"head": "Entity_47", "relation": "downregulates", "tail": "Entity_385"}
+{"head": "Entity_434", "relation": "causes", "tail": "Entity_85"}
+{"head": "Entity_208", "relation": "regulates", "tail": "Entity_246"}
+{"head": "Entity_109", "relation": "upregulates", "tail": "Entity_205"}
+{"head": "Drug Beta", "relation": "associated_with", "tail": "Entity_194"}
+{"head": "Ibuprofen", "relation": "activates", "tail": "Entity_135"}
+{"head": "Entity_401", "relation": "consumes", "tail": "Entity_232"}
+{"head": "Entity_146", "relation": "activates", "tail": "Entity_356"}
+{"head": "Entity_374", "relation": "consumes", "tail": "Entity_284"}
+{"head": "Entity_338", "relation": "produces", "tail": "Entity_249"}
+{"head": "Entity_79", "relation": "causes", "tail": "Entity_151"}
+{"head": "Entity_111", "relation": "treats", "tail": "Entity_296"}
+{"head": "Entity_376", "relation": "interacts_with", "tail": "Drug Gamma"}
+{"head": "Entity_382", "relation": "inhibits", "tail": "Drug Alpha"}
+{"head": "Disease A", "relation": "binds_to", "tail": "Entity_244"}
+{"head": "Entity_257", "relation": "downregulates", "tail": "Entity_436"}
+{"head": "Entity_271", "relation": "associated_with", "tail": "Drug Alpha"}
+{"head": "Entity_260", "relation": "targets", "tail": "Entity_435"}
+{"head": "Entity_95", "relation": "targets", "tail": "Entity_304"}
+{"head": "Pathway 2", "relation": "metabolizes", "tail": "Entity_120"}
+{"head": "Entity_206", "relation": "targets", "tail": "Entity_291"}
+{"head": "Entity_126", "relation": "binds_to", "tail": "Entity_304"}
+{"head": "Gene A", "relation": "binds_to", "tail": "Entity_41"}
+{"head": "Entity_214", "relation": "metabolizes", "tail": "Entity_298"}
+{"head": "Entity_289", "relation": "interacts_with", "tail": "Entity_161"}
+{"head": "Entity_133", "relation": "causes", "tail": "Entity_342"}
+{"head": "Entity_366", "relation": "inhibits", "tail": "Entity_122"}
+{"head": "Entity_135", "relation": "activates", "tail": "Entity_67"}
+{"head": "Entity_343", "relation": "metabolizes", "tail": "Entity_153"}
+{"head": "Entity_234", "relation": "inhibits", "tail": "Entity_384"}
+{"head": "Entity_37", "relation": "treats", "tail": "Entity_234"}
+{"head": "Entity_318", "relation": "binds_to", "tail": "Entity_51"}
+{"head": "Entity_37", "relation": "interacts_with", "tail": "Entity_109"}
+{"head": "Entity_259", "relation": "prevents", "tail": "Entity_67"}
+{"head": "Entity_178", "relation": "downregulates", "tail": "Biological Process A"}
+{"head": "Entity_125", "relation": "inhibits", "tail": "Entity_145"}
+{"head": "Entity_80", "relation": "regulates", "tail": "Entity_426"}
+{"head": "Entity_278", "relation": "produces", "tail": "Entity_154"}
+{"head": "Entity_313", "relation": "consumes", "tail": "Entity_334"}
+{"head": "Entity_270", "relation": "treats", "tail": "Entity_341"}
+{"head": "Entity_418", "relation": "interacts_with", "tail": "Entity_153"}
+{"head": "Entity_339", "relation": "targets", "tail": "Entity_68"}
+{"head": "Entity_135", "relation": "targets", "tail": "Entity_54"}
+{"head": "Entity_380", "relation": "interacts_with", "tail": "Entity_79"}
+{"head": "Entity_139", "relation": "prevents", "tail": "Entity_309"}
+{"head": "Entity_107", "relation": "produces", "tail": "Entity_175"}
+{"head": "Entity_104", "relation": "metabolizes", "tail": "Entity_324"}
+{"head": "Entity_436", "relation": "prevents", "tail": "Entity_258"}
+{"head": "Entity_250", "relation": "prevents", "tail": "Entity_433"}
+{"head": "Disease B", "relation": "targets", "tail": "Entity_324"}
+{"head": "Entity_216", "relation": "upregulates", "tail": "Entity_141"}
+{"head": "Protein X", "relation": "treats", "tail": "Entity_170"}
+{"head": "Entity_394", "relation": "associated_with", "tail": "Entity_326"}
+{"head": "Entity_134", "relation": "associated_with", "tail": "Entity_379"}
+{"head": "Entity_226", "relation": "interacts_with", "tail": "Entity_361"}
+{"head": "Entity_218", "relation": "interacts_with", "tail": "Trastuzumab"}
+{"head": "Entity_57", "relation": "targets", "tail": "Entity_353"}
+{"head": "Entity_76", "relation": "interacts_with", "tail": "Cell"}
+{"head": "Entity_427", "relation": "inhibits", "tail": "Entity_298"}
+{"head": "Entity_282", "relation": "associated_with", "tail": "Entity_220"}
+{"head": "Entity_65", "relation": "treats", "tail": "Entity_157"}
+{"head": "Entity_186", "relation": "downregulates", "tail": "Entity_407"}
+{"head": "Gene A", "relation": "downregulates", "tail": "Entity_183"}
+{"head": "Entity_107", "relation": "metabolizes", "tail": "Entity_127"}
+{"head": "Entity_341", "relation": "targets", "tail": "Entity_181"}
+{"head": "Entity_399", "relation": "interacts_with", "tail": "Entity_208"}
+{"head": "Entity_317", "relation": "produces", "tail": "Entity_79"}
+{"head": "Entity_121", "relation": "upregulates", "tail": "Entity_83"}
+{"head": "Entity_409", "relation": "consumes", "tail": "Entity_90"}
+{"head": "Entity_211", "relation": "treats", "tail": "Entity_91"}
+{"head": "Entity_377", "relation": "downregulates", "tail": "Entity_170"}
+{"head": "Entity_400", "relation": "downregulates", "tail": "Entity_210"}
+{"head": "Entity_410", "relation": "metabolizes", "tail": "Entity_376"}
+{"head": "Entity_415", "relation": "causes", "tail": "Entity_136"}
+{"head": "Entity_81", "relation": "consumes", "tail": "Entity_359"}
+{"head": "Entity_55", "relation": "activates", "tail": "Tissue"}
+{"head": "Entity_240", "relation": "causes", "tail": "Entity_102"}
+{"head": "Entity_418", "relation": "downregulates", "tail": "Entity_235"}
+{"head": "Entity_179", "relation": "prevents", "tail": "Entity_420"}
+{"head": "Entity_407", "relation": "upregulates", "tail": "Entity_116"}
+{"head": "Entity_114", "relation": "treats", "tail": "Entity_337"}
+{"head": "Entity_98", "relation": "activates", "tail": "Entity_168"}
+{"head": "Entity_142", "relation": "upregulates", "tail": "Biological Process A"}
