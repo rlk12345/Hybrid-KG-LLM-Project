@@ -136,7 +136,7 @@ python scripts/prepare_hybrid_dataset.py \
   --no_images  # Skip image rendering for faster testing
 
 # Verify the output
-ls data/hybrid_test/  # Should show train.jsonl and val.jsonl
+ls data/hybrid_test/  # Should show train.jsonl, val.jsonl, and test.jsonl
 ```
 
 If both steps complete without errors, your setup is correct!
@@ -162,6 +162,7 @@ If both steps complete without errors, your setup is correct!
 
 - `data/`
   - Tracked example datasets: `hybrid/`, `hybrid_simcse/`, `hybrid_simcse_default/`
+  - Each dataset directory contains: `train.jsonl`, `val.jsonl`, `test.jsonl`, and `images/` folder
   - Sample files: `entity_texts.jsonl` and `sample_triples.jsonl` (included for testing)
   - Note: Large raw datasets (`data/primekg_raw/`) are intentionally ignored in Git. Use the download and subset scripts below to reproduce.
 
@@ -176,10 +177,21 @@ The repository includes sample data files for immediate testing:
 
 ```bash
 # Prepare a demo hybrid dataset (small sample with images)
+# Creates train/val/test splits (80/10/10 by default)
 python scripts/prepare_hybrid_dataset.py \
   --triples_jsonl data/sample_triples.jsonl \
   --out_dir data/hybrid \
   --limit 50
+
+# Custom split ratios (must sum to 1.0)
+python scripts/prepare_hybrid_dataset.py \
+  --triples_jsonl data/sample_triples.jsonl \
+  --out_dir data/hybrid \
+  --limit 50 \
+  --train_ratio 0.8 \
+  --val_ratio 0.1 \
+  --test_ratio 0.1 \
+  --seed 42
 ```
 
 ### Option 2: Download PRIMEKG (Full Dataset)
@@ -201,6 +213,7 @@ python scripts/primekg_subset.py --primekg_dir third_party/PrimeKG --out_dir dat
 **Step 3: Prepare hybrid dataset:**
 
 ```bash
+# Creates train/val/test splits (80/10/10 by default)
 python scripts/prepare_hybrid_dataset.py \
   --triples_jsonl data/subset_triples.jsonl \
   --out_dir data/hybrid \
@@ -320,15 +333,20 @@ The multi-hop QA evaluation script compares predictions to gold answers:
 # The predictions file should be JSONL with field: prediction
 # The gold file should be JSONL with fields: prompt, answer
 
-# Then evaluate:
+# Evaluate on validation set:
 python scripts/eval_multihop_qa.py \
   --gold_jsonl data/hybrid/val.jsonl \
-  --pred_jsonl outputs/qa_predictions.jsonl
+  --pred_jsonl outputs/qa_predictions_val.jsonl
+
+# Evaluate on test set (final evaluation):
+python scripts/eval_multihop_qa.py \
+  --gold_jsonl data/hybrid/test.jsonl \
+  --pred_jsonl outputs/qa_predictions_test.jsonl
 ```
 
 **Output:** JSON with `Accuracy` metric.
 
-**Note:** These evaluation scripts compute metrics from pre-generated predictions. You'll need to implement model inference separately to generate the prediction files.
+**Note:** These evaluation scripts compute metrics from pre-generated predictions. You'll need to implement model inference separately to generate the prediction files. Use the validation set for hyperparameter tuning and the test set only for final evaluation.
 
 ## Visualization
 

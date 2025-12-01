@@ -17,6 +17,7 @@ class ModelConfig:
 class DataConfig:
     train_path: str = "data/hybrid/train.jsonl"
     eval_path: str = "data/hybrid/val.jsonl"
+    test_path: Optional[str] = "data/hybrid/test.jsonl"
     image_root: Optional[str] = "data/hybrid/images"
     triples_path: Optional[str] = None
     format: str = "jsonl"  # jsonl|tsv

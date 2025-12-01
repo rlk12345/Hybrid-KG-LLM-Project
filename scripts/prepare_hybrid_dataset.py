@@ -3,6 +3,7 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 import json
+import random
 from typing import Dict, List, Tuple, Optional
 
 from src.kg_data import read_triples_jsonl
@@ -96,13 +97,36 @@ def build_demo_pairs(triples: List[Tuple[str, str, str]],
                      max_images: int = 100,
                      num_workers: int = 0,
                      start_idx: int = 0,
-                     end_idx: int = -1) -> None:
+                     end_idx: int = -1,
+                     train_ratio: float = 0.8,
+                     val_ratio: float = 0.1,
+                     test_ratio: float = 0.1,
+                     seed: int = 42) -> None:
+    """
+    Build DPO training pairs from KG triples with train/validation/test splits.
+    
+    Creates three output files:
+    - train.jsonl: Training data (default 80%)
+    - val.jsonl: Validation data (default 10%) 
+    - test.jsonl: Test data (default 10%)
+    
+    The data is randomly shuffled (with seed) before splitting to ensure
+    random distribution across splits. All samples are assigned to exactly
+    one split (test gets remainder after train/val allocation).
+    """
     os.makedirs(out_dir, exist_ok=True)
     images_dir = os.path.join(out_dir, "images")
     os.makedirs(images_dir, exist_ok=True)
 
-    out_path = os.path.join(out_dir, "train.jsonl")
+    train_path = os.path.join(out_dir, "train.jsonl")
     val_path = os.path.join(out_dir, "val.jsonl")
+    test_path = os.path.join(out_dir, "test.jsonl")
+
+    # Validate split ratios
+    assert 0 < train_ratio < 1 and 0 < val_ratio < 1 and 0 < test_ratio < 1, \
+        "All split ratios must be between 0 and 1"
+    assert abs(train_ratio + val_ratio + test_ratio - 1.0) < 1e-6, \
+        f"Split ratios must sum to 1.0 (got {train_ratio + val_ratio + test_ratio})"
 
     # slice window if requested, then apply limit
     if end_idx is not None and end_idx >= 0:
@@ -110,7 +134,19 @@ def build_demo_pairs(triples: List[Tuple[str, str, str]],
     else:
         triples_window = triples[start_idx:]
     total = min(limit, len(triples_window))
-    half = max(1, total // 2) if total >= 2 else 1
+    
+    # Shuffle and split into train/val/test
+    rng = random.Random(seed)
+    shuffled_indices = list(range(total))
+    rng.shuffle(shuffled_indices)
+    
+    n_train = int(total * train_ratio)
+    n_val = int(total * val_ratio)
+    # Test gets the remainder to ensure all samples are used
+    
+    train_indices = set(shuffled_indices[:n_train])
+    val_indices = set(shuffled_indices[n_train:n_train + n_val])
+    test_indices = set(shuffled_indices[n_train + n_val:])
 
     id2text = _load_entity_texts(entity_texts_jsonl)
     adj = _build_adjacency(triples)
@@ -133,36 +169,10 @@ def build_demo_pairs(triples: List[Tuple[str, str, str]],
     else:
         ranker = None
 
-    with open(out_path, "w", encoding="utf-8") as f_train, open(val_path, "w", encoding="utf-8") as f_val:
-        # single-item fast-path
-        if total == 1:
-            h, r, t = triples_window[0]
-            img_path = os.path.join(images_dir, f"sample_0.png")
-            selected = []
-            if use_sns and ranker is not None:
-                selected = _select_sns_neighbors(
-                    h, r, t, adj, id2text, ranker, top_k=sns_top_k, threshold=sns_threshold
-                )
-            if not selected:
-                selected = [(h, r, t)]
-            if render_images and 0 < max_images:
-                render_kg(selected, img_path)
-            else:
-                img_path = None
-
-            lines = [
-                f"Question: Given the KG snippet, what is the relation between {h} and {t}?",
-                "Relevant KG triples:",
-            ]
-            for hh, rr, tt in selected:
-                lines.append(f"- ({hh}) -[{rr}]-> ({tt})")
-            lines.append("Answer:")
-            prompt = "\n".join(lines)
-            item = {"prompt": prompt, "chosen": r, "rejected": "unknown", "image": img_path}
-            f_train.write(json.dumps(item, ensure_ascii=False) + "\n")
-            f_val.write(json.dumps(item, ensure_ascii=False) + "\n")
-            return
-
+    with open(train_path, "w", encoding="utf-8") as f_train, \
+         open(val_path, "w", encoding="utf-8") as f_val, \
+         open(test_path, "w", encoding="utf-8") as f_test:
+        
         tasks: List[Tuple[List[Tuple[str, str, str]], str]] = []
         for idx, (h, r, t) in enumerate(triples_window[:total]):
             img_path = os.path.join(images_dir, f"sample_{idx}.png")
@@ -194,10 +204,14 @@ def build_demo_pairs(triples: List[Tuple[str, str, str]],
                 "rejected": rejected,
                 "image": img_path,
             }
-            if idx < half:
+            
+            # Write to appropriate split based on shuffled indices
+            if idx in train_indices:
                 f_train.write(json.dumps(item, ensure_ascii=False) + "\n")
-            else:
+            elif idx in val_indices:
                 f_val.write(json.dumps(item, ensure_ascii=False) + "\n")
+            elif idx in test_indices:
+                f_test.write(json.dumps(item, ensure_ascii=False) + "\n")
 
     # After writing JSONL, render images (optionally in parallel)
     if render_images:
@@ -248,7 +262,19 @@ if __name__ == "__main__":
     parser.add_argument("--num_workers", type=int, default=0, help="Parallel image workers (0=serial)")
     parser.add_argument("--start_idx", type=int, default=0, help="Start index (inclusive) for slicing")
     parser.add_argument("--end_idx", type=int, default=-1, help="End index (exclusive) for slicing; -1 means till end")
+    parser.add_argument("--train_ratio", type=float, default=0.8, help="Ratio of data for training (default: 0.8)")
+    parser.add_argument("--val_ratio", type=float, default=0.1, help="Ratio of data for validation (default: 0.1)")
+    parser.add_argument("--test_ratio", type=float, default=0.1, help="Ratio of data for testing (default: 0.1)")
+    parser.add_argument("--seed", type=int, default=42, help="Random seed for splitting (default: 42)")
     args = parser.parse_args()
+
+    # Validate ratios sum to 1.0
+    total_ratio = args.train_ratio + args.val_ratio + args.test_ratio
+    if abs(total_ratio - 1.0) > 1e-6:
+        print(f"Warning: Split ratios sum to {total_ratio}, not 1.0. Normalizing...")
+        args.train_ratio /= total_ratio
+        args.val_ratio /= total_ratio
+        args.test_ratio /= total_ratio
 
     triples = read_triples_jsonl(args.triples_jsonl)
     build_demo_pairs(
@@ -268,4 +294,8 @@ if __name__ == "__main__":
         num_workers=args.num_workers,
         start_idx=args.start_idx,
         end_idx=args.end_idx,
+        train_ratio=args.train_ratio,
+        val_ratio=args.val_ratio,
+        test_ratio=args.test_ratio,
+        seed=args.seed,
     )
