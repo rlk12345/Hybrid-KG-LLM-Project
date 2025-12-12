@@ -4,21 +4,35 @@ Hybrid multi-hop reasoning over knowledge graphs with LLM alignment using Direct
 
 ## Quick Reference for TAs/Reviewers
 
-**To reproduce all results:**
+**Option 1: Automated Setup (Recommended)**
 
 ```bash
-# 1. Install dependencies (see Installation section)
+# Run the quick start script (handles setup automatically)
+bash QUICK_START.sh
+```
+
+**Option 2: Manual Setup**
+
+```bash
+# 1. Navigate to clean_repo directory
+cd clean_repo
+
+# 2. Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# 3. Install dependencies
 pip install -r requirements.txt
 export PYTHONPATH="${PYTHONPATH}:$(pwd)"
 
-# 2. Verify setup
-python verify_setup.py
+# 4. Verify setup
+python3 verify_setup.py
 
-# 3. Generate all dataset variants
+# 5. Generate all dataset variants
 bash scripts/generate_all_datasets.sh
 
-# 4. Train model on paper evaluation dataset
-python -c "
+# 6. Train model on paper evaluation dataset
+python3 -c "
 from src.hybrid_dpo import train_hybrid_dpo
 train_hybrid_dpo({
     'data': {'train_path': 'data/paper_eval/train.jsonl', 'eval_path': 'data/paper_eval/val.jsonl'},
@@ -26,10 +40,12 @@ train_hybrid_dpo({
 })
 "
 
-# 5. Generate predictions and evaluate
-python scripts/generate_predictions.py --model_path outputs/paper_eval_model --test_jsonl data/paper_eval/test.jsonl --output_jsonl outputs/predictions.jsonl
-python scripts/comprehensive_eval.py --gold_jsonl data/paper_eval/test.jsonl --pred_jsonl outputs/predictions.jsonl --output_json outputs/results.json
+# 7. Generate predictions and evaluate
+python3 scripts/generate_predictions.py --model_path outputs/paper_eval_model --test_jsonl data/paper_eval/test.jsonl --output_jsonl outputs/predictions.jsonl
+python3 scripts/comprehensive_eval.py --gold_jsonl data/paper_eval/test.jsonl --pred_jsonl outputs/predictions.jsonl --output_json outputs/results.json
 ```
+
+**Note:** On macOS/Linux, use `python3` and `pip3`. The `python` command may not be available.
 
 **All dataset variants** (hybrid, hybrid_simcse, hybrid_large, paper_eval, etc.) can be generated using `scripts/generate_all_datasets.sh`. See "Dataset Generation" section for details.
 
@@ -110,8 +126,10 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 ### Step 4: Install Python Dependencies
 
 ```bash
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
+
+**Note:** On macOS, use `python3` and `pip3`. If you're using a virtual environment, `python` and `pip` will work after activation.
 
 ### Step 5: Set PYTHONPATH
 
@@ -139,7 +157,7 @@ set PYTHONPATH=%PYTHONPATH%;%CD%
 ### Step 6: Verify Installation
 
 ```bash
-python verify_setup.py
+python3 verify_setup.py
 ```
 
 This checks:
@@ -176,13 +194,13 @@ The repository includes sample data files for immediate testing:
 
 ```bash
 # Step 1: Prepare basic dataset (creates train/val/test splits)
-python scripts/prepare_hybrid_dataset.py \
+python3 scripts/prepare_hybrid_dataset.py \
   --triples_jsonl data/sample_triples.jsonl \
   --out_dir data/hybrid \
   --limit 50
 
 # Step 2: Train model (uses GPT-2, safe on any machine)
-python -c "
+python3 -c "
 from src.hybrid_dpo import train_hybrid_dpo
 train_hybrid_dpo({
     'data': {
@@ -199,13 +217,13 @@ train_hybrid_dpo({
 "
 
 # Step 3: Generate predictions
-python scripts/generate_predictions.py \
+python3 scripts/generate_predictions.py \
   --model_path outputs/hybrid-dpo \
   --test_jsonl data/hybrid/test.jsonl \
   --output_jsonl outputs/predictions.jsonl
 
 # Step 4: Evaluate
-python scripts/eval_multihop_qa.py \
+python3 scripts/eval_multihop_qa.py \
   --gold_jsonl data/hybrid/test.jsonl \
   --pred_jsonl outputs/predictions.jsonl
 ```
@@ -216,21 +234,21 @@ For experiments with the full PrimeKG dataset:
 
 ```bash
 # Step 1: Download PRIMEKG
-python scripts/primekg_download.py --target_dir third_party/PrimeKG
+python3 scripts/primekg_download.py --target_dir third_party/PrimeKG
 
 # Step 2: Create subset (optional, for faster experiments)
-python scripts/primekg_subset.py \
+python3 scripts/primekg_subset.py \
   --primekg_dir third_party/PrimeKG \
   --out_dir data/primekg \
   --limit_nodes 50000
 
 # Step 3: Convert to JSONL format (if needed)
-python scripts/primekg_convert_from_kgcsv.py \
+python3 scripts/primekg_convert_from_kgcsv.py \
   --kgcsv_path data/primekg/kg.csv \
   --out_jsonl data/primekg_triples.jsonl
 
 # Step 4: Prepare hybrid dataset from PrimeKG
-python scripts/prepare_hybrid_dataset.py \
+python3 scripts/prepare_hybrid_dataset.py \
   --triples_jsonl data/primekg_triples.jsonl \
   --out_dir data/primekg/hybrid_minilm_smoke \
   --limit 1000
