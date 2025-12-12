@@ -1,0 +1,1 @@
+{"prompt": "Question: Given the KG snippet, what is the relation between Metformin and Type 2 Diabetes?\nRelevant KG triples:\n- (Metformin) -[treats]-> (Type 2 Diabetes)\nAnswer:", "chosen": "treats", "rejected": "unknown", "image": null}

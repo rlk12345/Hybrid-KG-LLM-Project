@@ -1,0 +1,2 @@
+{"prompt": "Question: Given the KG snippet, what is the relation between Aspirin and Headache?\nRelevant KG triples:\n- (Aspirin) -[treats]-> (Headache)\nAnswer:", "chosen": "treats", "rejected": "unknown", "image": null}
+{"prompt": "Question: Given the KG snippet, what is the relation between Ibuprofen and Headache?\nRelevant KG triples:\n- (Ibuprofen) -[treats]-> (Headache)\nAnswer:", "chosen": "treats", "rejected": "unknown", "image": null}

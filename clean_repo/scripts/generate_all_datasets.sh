@@ -23,7 +23,7 @@ fi
 
 # 1. Basic hybrid dataset
 echo "1. Generating basic hybrid dataset (data/hybrid/)..."
-python scripts/prepare_hybrid_dataset.py \
+python3 scripts/prepare_hybrid_dataset.py \
   --triples_jsonl data/sample_triples.jsonl \
   --out_dir data/hybrid \
   --limit 50 \
@@ -36,7 +36,7 @@ echo ""
 
 # 2. Hybrid large dataset
 echo "2. Generating large hybrid dataset (data/hybrid_large/)..."
-python scripts/prepare_hybrid_dataset.py \
+python3 scripts/prepare_hybrid_dataset.py \
   --triples_jsonl data/sample_triples.jsonl \
   --out_dir data/hybrid_large \
   --limit 100 \
@@ -50,7 +50,7 @@ echo ""
     # 3. Hybrid with SimCSE (if entity_texts.jsonl exists)
 if [ -f "data/entity_texts.jsonl" ]; then
     echo "3. Generating hybrid dataset with SimCSE (data/hybrid_simcse/)..."
-    python scripts/prepare_hybrid_dataset.py \
+    python3 scripts/prepare_hybrid_dataset.py \
       --triples_jsonl data/sample_triples.jsonl \
       --out_dir data/hybrid_simcse \
       --limit 50 \
@@ -67,7 +67,7 @@ if [ -f "data/entity_texts.jsonl" ]; then
 
     # 4. Hybrid SimCSE with default settings
     echo "4. Generating hybrid SimCSE default dataset (data/hybrid_simcse_default/)..."
-    python scripts/prepare_hybrid_dataset.py \
+    python3 scripts/prepare_hybrid_dataset.py \
       --triples_jsonl data/sample_triples.jsonl \
       --out_dir data/hybrid_simcse_default \
       --limit 50 \
@@ -86,7 +86,7 @@ fi
 
 # 5. Paper evaluation dataset
 echo "5. Generating paper evaluation dataset (data/paper_eval/)..."
-python scripts/prepare_hybrid_dataset.py \
+python3 scripts/prepare_hybrid_dataset.py \
   --triples_jsonl data/sample_triples.jsonl \
   --out_dir data/paper_eval \
   --limit 200 \
