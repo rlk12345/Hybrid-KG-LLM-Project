@@ -2,56 +2,183 @@
 
 Hybrid multi-hop reasoning over knowledge graphs with LLM alignment using Direct Preference Optimization (DPO). This repository provides a complete pipeline for training and evaluating LLMs on knowledge graph reasoning tasks.
 
-## Quick Reference for TAs/Reviewers
+## Quick Start: Step-by-Step Guide
 
-**New to the project?** See `WHAT_NEXT.md` for a detailed guide on what to do after setup.
+Follow these steps in order to reproduce the results:
 
-**Option 1: Automated Setup (Recommended)**
+### Step 1: Clone the Repository
 
 ```bash
-# Run the quick start script (handles setup automatically)
+git clone <repository-url>
+cd Hybrid-KG-LLM-Project/clean_repo
+```
+
+### Step 2: Run Quick Start (Setup)
+
+This sets up the Python environment and installs dependencies:
+
+```bash
 bash QUICK_START.sh
 ```
 
-**Option 2: Manual Setup**
+**What this does:**
+- Creates a Python virtual environment
+- Installs all required packages
+- Verifies the setup is correct
+
+**Time:** 2-5 minutes
+
+### Step 3: Generate All Datasets
+
+This creates all the dataset variants used in experiments:
 
 ```bash
-# 1. Navigate to clean_repo directory
-cd clean_repo
+bash scripts/generate_all_datasets.sh
+```
 
-# 2. Create and activate virtual environment
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+**What this does:**
+- Creates 5 dataset variants in `data/` directories
+- Each dataset has train/val/test splits ready for training
 
-# 3. Install dependencies
-pip install -r requirements.txt
+**Time:** 1-2 minutes
+
+### Step 4: Test the Complete Pipeline (Recommended)
+
+Run a complete end-to-end test to verify everything works:
+
+```bash
+bash TEST_WORKFLOW.sh
+```
+
+**What this does:**
+- Creates a small test dataset (20 samples)
+- Trains a model (GPT-2, safe on any machine)
+- Generates predictions
+- Evaluates and shows results
+
+**Time:** 5-10 minutes
+
+**Expected output:** You'll see accuracy metrics confirming the pipeline works.
+
+### Step 5: Train on Paper Evaluation Dataset
+
+Train the model on the actual paper dataset:
+
+```bash
+# Make sure virtual environment is activated
+source venv/bin/activate
 export PYTHONPATH="${PYTHONPATH}:$(pwd)"
 
-# 4. Verify setup
-python3 verify_setup.py
-
-# 5. Generate all dataset variants
-bash scripts/generate_all_datasets.sh
-
-# 6. Train model on paper evaluation dataset
+# Train the model
 python3 -c "
 from src.hybrid_dpo import train_hybrid_dpo
 train_hybrid_dpo({
-    'data': {'train_path': 'data/paper_eval/train.jsonl', 'eval_path': 'data/paper_eval/val.jsonl'},
-    'dpo': {'output_dir': 'outputs/paper_eval_model', 'num_train_epochs': 3, 'per_device_train_batch_size': 1, 'learning_rate': 5e-6, 'gradient_accumulation_steps': 2}
+    'data': {
+        'train_path': 'data/paper_eval/train.jsonl',
+        'eval_path': 'data/paper_eval/val.jsonl'
+    },
+    'dpo': {
+        'output_dir': 'outputs/paper_eval_model',
+        'num_train_epochs': 3,
+        'per_device_train_batch_size': 1,
+        'learning_rate': 5e-6,
+        'gradient_accumulation_steps': 2
+    }
 })
 "
-
-# 7. Generate predictions and evaluate
-python3 scripts/generate_predictions.py --model_path outputs/paper_eval_model --test_jsonl data/paper_eval/test.jsonl --output_jsonl outputs/predictions.jsonl
-python3 scripts/comprehensive_eval.py --gold_jsonl data/paper_eval/test.jsonl --pred_jsonl outputs/predictions.jsonl --output_json outputs/results.json
 ```
 
-**Note:** On macOS/Linux, use `python3` and `pip3`. The `python` command may not be available.
+**What this does:**
+- Trains the model using DPO (Direct Preference Optimization)
+- Saves checkpoints to `outputs/paper_eval_model/`
+- Shows training progress in the terminal
 
-**All dataset variants** (hybrid, hybrid_simcse, hybrid_large, paper_eval, etc.) can be generated using `scripts/generate_all_datasets.sh`. See "Dataset Generation" section for details.
+**Time:** 10-20 minutes
 
-**📖 New to the project?** See `WHAT_NEXT.md` for a step-by-step guide explaining what each script does and what to do next.
+### Step 6: Generate Predictions
+
+Use the trained model to generate predictions on the test set:
+
+```bash
+python3 scripts/generate_predictions.py \
+  --model_path outputs/paper_eval_model \
+  --test_jsonl data/paper_eval/test.jsonl \
+  --output_jsonl outputs/paper_eval_predictions.jsonl \
+  --max_new_tokens 20
+```
+
+**What this does:**
+- Loads the trained model
+- Generates answers for test questions
+- Saves predictions to a file
+
+**Time:** 1-2 minutes
+
+### Step 7: Evaluate Results
+
+Compute evaluation metrics:
+
+```bash
+python3 scripts/comprehensive_eval.py \
+  --gold_jsonl data/paper_eval/test.jsonl \
+  --pred_jsonl outputs/paper_eval_predictions.jsonl \
+  --output_json outputs/paper_eval_results.json
+```
+
+**What this does:**
+- Compares predictions to correct answers
+- Computes accuracy, precision, recall, F1
+- Saves detailed metrics to JSON file
+
+**Time:** < 1 minute
+
+### Step 8: View Results
+
+View the evaluation results:
+
+```bash
+cat outputs/paper_eval_results.json | python3 -m json.tool
+```
+
+Or open `outputs/paper_eval_results.json` in any text editor.
+
+---
+
+## Summary
+
+**Complete workflow (copy-paste all at once):**
+
+```bash
+# Step 1: Clone (already done if you're reading this)
+cd clean_repo
+
+# Step 2: Setup
+bash QUICK_START.sh
+
+# Step 3: Generate datasets
+bash scripts/generate_all_datasets.sh
+
+# Step 4: Test (optional but recommended)
+bash TEST_WORKFLOW.sh
+
+# Step 5: Train (activate venv first)
+source venv/bin/activate
+export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+python3 -c "from src.hybrid_dpo import train_hybrid_dpo; train_hybrid_dpo({'data': {'train_path': 'data/paper_eval/train.jsonl', 'eval_path': 'data/paper_eval/val.jsonl'}, 'dpo': {'output_dir': 'outputs/paper_eval_model', 'num_train_epochs': 3, 'per_device_train_batch_size': 1, 'learning_rate': 5e-6, 'gradient_accumulation_steps': 2}})"
+
+# Step 6: Generate predictions
+python3 scripts/generate_predictions.py --model_path outputs/paper_eval_model --test_jsonl data/paper_eval/test.jsonl --output_jsonl outputs/paper_eval_predictions.jsonl --max_new_tokens 20
+
+# Step 7: Evaluate
+python3 scripts/comprehensive_eval.py --gold_jsonl data/paper_eval/test.jsonl --pred_jsonl outputs/paper_eval_predictions.jsonl --output_json outputs/paper_eval_results.json
+
+# Step 8: View results
+cat outputs/paper_eval_results.json | python3 -m json.tool
+```
+
+---
+
+**Need more details?** See sections below for explanations of each component.
 
 ## Overview
 
@@ -94,225 +221,38 @@ This project combines:
 
 - **Windows**: Download from [Graphviz website](https://graphviz.org/download/) or use `choco install graphviz`
 
-## Installation
+## Manual Installation (Optional)
 
-### Step 1: Clone the Repository
+**Note:** The `QUICK_START.sh` script (Step 2 in Quick Start) handles all setup automatically. Only follow these steps if you prefer manual setup.
 
-```bash
-git clone <your-repo-url>
-cd Hybrid-KG-LLM-Project
-```
+### Prerequisites
 
-### Step 2: Create Python Virtual Environment
+- Python 3.10 or higher
+- Git
+- Graphviz (install via `brew install graphviz` on macOS, `apt-get install graphviz` on Linux)
 
-```bash
-# Using venv
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+### Setup Steps
 
-# Or using conda
-conda create -n hybridkg python=3.10
-conda activate hybridkg
-```
-
-### Step 3: Install PyTorch
-
-Install PyTorch matching your system. Visit [PyTorch website](https://pytorch.org/get-started/locally/) for the correct command, or use:
-
-```bash
-# CPU only
-pip install torch torchvision torchaudio
-
-# CUDA (adjust version as needed)
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-```
-
-### Step 4: Install Python Dependencies
-
-```bash
-pip3 install -r requirements.txt
-```
-
-**Note:** On macOS, use `python3` and `pip3`. If you're using a virtual environment, `python` and `pip` will work after activation.
-
-### Step 5: Set PYTHONPATH
-
-**Important**: You must set the PYTHONPATH to the project root for imports to work correctly.
-
-**Linux/macOS:**
-```bash
-# Add to ~/.bashrc or ~/.zshrc for persistence
-export PYTHONPATH="${PYTHONPATH}:$(pwd)"
-
-# Or run in each terminal session:
-export PYTHONPATH="${PYTHONPATH}:$(pwd)"
-```
-
-**Windows PowerShell:**
-```powershell
-$env:PYTHONPATH = "$env:PYTHONPATH;$PWD"
-```
-
-**Windows CMD:**
-```cmd
-set PYTHONPATH=%PYTHONPATH%;%CD%
-```
-
-### Step 6: Verify Installation
-
-```bash
-python3 verify_setup.py
-```
-
-This checks:
-- All Python imports work correctly
-- Required dependencies are installed
-- Sample data files are present
-- Graphviz is installed
-
-If all checks pass, you're ready to proceed!
-
-## Understanding the Workflow
-
-Before diving in, here's what the project does:
-
-1. **Dataset Preparation**: Converts KG triples into training examples with prompts
-2. **Training**: Fine-tunes an LLM using DPO (Direct Preference Optimization) to prefer correct reasoning
-3. **Prediction**: Uses the trained model to answer questions about KG relationships
-4. **Evaluation**: Measures how well the model performs on test data
-
-**Key Concepts:**
-- **DPO Pairs**: Each training example has a "chosen" (correct) and "rejected" (incorrect) answer
-- **Hybrid Dataset**: Combines text prompts with optional graph visualizations
-- **SimCSE Ranking**: Uses semantic similarity to select relevant neighbors in the KG
-
-## Quick Start
-
-### Option 0: Complete Test Workflow (Recommended First Step)
-
-**Run a complete end-to-end test to verify everything works:**
-
-```bash
-bash TEST_WORKFLOW.sh
-```
-
-This script will:
-1. Create a small test dataset (20 samples)
-2. Train a model (GPT-2, ~2-5 minutes)
-3. Generate predictions
-4. Evaluate and show results
-
-**Expected output:** Accuracy metrics and confirmation that the pipeline works.
-
-**Time:** 5-10 minutes
-
-**Use this to:**
-- Verify your setup is correct
-- Understand what each step does
-- See the complete workflow in action
-
-### Option 1: Generate All Dataset Variants (Recommended for Reproducibility)
-
-To reproduce all datasets used in experiments:
-
-```bash
-# Generate all dataset variants at once
-bash scripts/generate_all_datasets.sh
-```
-
-This creates:
-- `data/hybrid/` - Basic dataset (50 samples)
-- `data/hybrid_large/` - Larger dataset (100 samples)
-- `data/hybrid_simcse/` - With SimCSE ranking (threshold 0.8)
-- `data/hybrid_simcse_default/` - With SimCSE ranking (default settings)
-- `data/paper_eval/` - Final evaluation dataset (200 samples)
-
-**What this script does:**
-- Reads sample KG triples from `data/sample_triples.jsonl`
-- Creates train/val/test splits for each dataset variant
-- Generates DPO pairs (positive vs negative examples) for training
-- Optionally renders graph visualizations (skipped for paper_eval to save space)
-
-**Next steps after generating datasets:**
-1. **Test the complete pipeline** (recommended first):
+1. **Create virtual environment:**
    ```bash
-   bash TEST_WORKFLOW.sh
+   python3 -m venv venv
+   source venv/bin/activate
    ```
-   This runs a complete end-to-end test: dataset → training → prediction → evaluation
 
-2. **Train on a specific dataset** (see Training section below)
+2. **Install dependencies:**
+   ```bash
+   pip3 install -r requirements.txt
+   ```
 
-3. **Generate predictions and evaluate** (see Evaluation section below)
+3. **Set PYTHONPATH:**
+   ```bash
+   export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+   ```
 
-### Option 2: Use Included Sample Data (Fastest)
-
-The repository includes sample data files for immediate testing:
-
-```bash
-# Step 1: Prepare basic dataset (creates train/val/test splits)
-python3 scripts/prepare_hybrid_dataset.py \
-  --triples_jsonl data/sample_triples.jsonl \
-  --out_dir data/hybrid \
-  --limit 50
-
-# Step 2: Train model (uses GPT-2, safe on any machine)
-python3 -c "
-from src.hybrid_dpo import train_hybrid_dpo
-train_hybrid_dpo({
-    'data': {
-        'train_path': 'data/hybrid/train.jsonl',
-        'eval_path': 'data/hybrid/val.jsonl'
-    },
-    'dpo': {
-        'output_dir': 'outputs/hybrid-dpo',
-        'num_train_epochs': 2,
-        'per_device_train_batch_size': 4,
-        'learning_rate': 5e-6
-    }
-})
-"
-
-# Step 3: Generate predictions
-python3 scripts/generate_predictions.py \
-  --model_path outputs/hybrid-dpo \
-  --test_jsonl data/hybrid/test.jsonl \
-  --output_jsonl outputs/predictions.jsonl
-
-# Step 4: Evaluate
-python3 scripts/eval_multihop_qa.py \
-  --gold_jsonl data/hybrid/test.jsonl \
-  --pred_jsonl outputs/predictions.jsonl
-```
-
-### Option 3: Download and Process PRIMEKG Data (Full Dataset)
-
-For experiments with the full PrimeKG dataset:
-
-```bash
-# Step 1: Download PRIMEKG
-python3 scripts/primekg_download.py --target_dir third_party/PrimeKG
-
-# Step 2: Create subset (optional, for faster experiments)
-python3 scripts/primekg_subset.py \
-  --primekg_dir third_party/PrimeKG \
-  --out_dir data/primekg \
-  --limit_nodes 50000
-
-# Step 3: Convert to JSONL format (if needed)
-python3 scripts/primekg_convert_from_kgcsv.py \
-  --kgcsv_path data/primekg/kg.csv \
-  --out_jsonl data/primekg_triples.jsonl
-
-# Step 4: Prepare hybrid dataset from PrimeKG
-python3 scripts/prepare_hybrid_dataset.py \
-  --triples_jsonl data/primekg_triples.jsonl \
-  --out_dir data/primekg/hybrid_minilm_smoke \
-  --limit 1000
-
-# Step 5: Train (same as Option 2, Step 2)
-# Step 6: Generate predictions (same as Option 2, Step 3)
-# Step 7: Evaluate (same as Option 2, Step 4)
-```
+4. **Verify setup:**
+   ```bash
+   python3 verify_setup.py
+   ```
 
 ## Dataset Generation
 
