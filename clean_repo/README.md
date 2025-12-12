@@ -14,12 +14,12 @@ This project combines:
 ### System Requirements
 
 **Minimum (for testing with GPT-2):**
-- Python 3.10 or higher
+- Python 3.10
 - 4GB RAM
 - CPU-only training works
 
 **Recommended (for larger models):**
-- Python 3.10 or higher
+- Python 3.10
 - GPU with 16GB+ VRAM (for models like Mistral-7B)
 - OR 16GB+ RAM for CPU training
 
