@@ -47,7 +47,7 @@ python scripts/prepare_hybrid_dataset.py \
 echo "  ✓ Created data/hybrid_large/"
 echo ""
 
-# 3. Hybrid with SimCSE (if entity_texts.jsonl exists)
+    # 3. Hybrid with SimCSE (if entity_texts.jsonl exists)
 if [ -f "data/entity_texts.jsonl" ]; then
     echo "3. Generating hybrid dataset with SimCSE (data/hybrid_simcse/)..."
     python scripts/prepare_hybrid_dataset.py \
@@ -60,7 +60,7 @@ if [ -f "data/entity_texts.jsonl" ]; then
       --sns_threshold 0.8 \
       --train_ratio 0.8 \
       --val_ratio 0.1 \
-      --test_ratio 0.0 \
+      --test_ratio 0.1 \
       --seed 42
     echo "  ✓ Created data/hybrid_simcse/"
     echo ""
@@ -75,7 +75,7 @@ if [ -f "data/entity_texts.jsonl" ]; then
       --entity_texts_jsonl data/entity_texts.jsonl \
       --train_ratio 0.8 \
       --val_ratio 0.1 \
-      --test_ratio 0.0 \
+      --test_ratio 0.1 \
       --seed 42
     echo "  ✓ Created data/hybrid_simcse_default/"
     echo ""
