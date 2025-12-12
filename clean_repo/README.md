@@ -4,6 +4,8 @@ Hybrid multi-hop reasoning over knowledge graphs with LLM alignment using Direct
 
 ## Quick Reference for TAs/Reviewers
 
+**New to the project?** See `WHAT_NEXT.md` for a detailed guide on what to do after setup.
+
 **Option 1: Automated Setup (Recommended)**
 
 ```bash
@@ -48,6 +50,8 @@ python3 scripts/comprehensive_eval.py --gold_jsonl data/paper_eval/test.jsonl --
 **Note:** On macOS/Linux, use `python3` and `pip3`. The `python` command may not be available.
 
 **All dataset variants** (hybrid, hybrid_simcse, hybrid_large, paper_eval, etc.) can be generated using `scripts/generate_all_datasets.sh`. See "Dataset Generation" section for details.
+
+**📖 New to the project?** See `WHAT_NEXT.md` for a step-by-step guide explaining what each script does and what to do next.
 
 ## Overview
 
@@ -168,7 +172,44 @@ This checks:
 
 If all checks pass, you're ready to proceed!
 
+## Understanding the Workflow
+
+Before diving in, here's what the project does:
+
+1. **Dataset Preparation**: Converts KG triples into training examples with prompts
+2. **Training**: Fine-tunes an LLM using DPO (Direct Preference Optimization) to prefer correct reasoning
+3. **Prediction**: Uses the trained model to answer questions about KG relationships
+4. **Evaluation**: Measures how well the model performs on test data
+
+**Key Concepts:**
+- **DPO Pairs**: Each training example has a "chosen" (correct) and "rejected" (incorrect) answer
+- **Hybrid Dataset**: Combines text prompts with optional graph visualizations
+- **SimCSE Ranking**: Uses semantic similarity to select relevant neighbors in the KG
+
 ## Quick Start
+
+### Option 0: Complete Test Workflow (Recommended First Step)
+
+**Run a complete end-to-end test to verify everything works:**
+
+```bash
+bash TEST_WORKFLOW.sh
+```
+
+This script will:
+1. Create a small test dataset (20 samples)
+2. Train a model (GPT-2, ~2-5 minutes)
+3. Generate predictions
+4. Evaluate and show results
+
+**Expected output:** Accuracy metrics and confirmation that the pipeline works.
+
+**Time:** 5-10 minutes
+
+**Use this to:**
+- Verify your setup is correct
+- Understand what each step does
+- See the complete workflow in action
 
 ### Option 1: Generate All Dataset Variants (Recommended for Reproducibility)
 
@@ -186,7 +227,22 @@ This creates:
 - `data/hybrid_simcse_default/` - With SimCSE ranking (default settings)
 - `data/paper_eval/` - Final evaluation dataset (200 samples)
 
-Then proceed with training and evaluation (see below).
+**What this script does:**
+- Reads sample KG triples from `data/sample_triples.jsonl`
+- Creates train/val/test splits for each dataset variant
+- Generates DPO pairs (positive vs negative examples) for training
+- Optionally renders graph visualizations (skipped for paper_eval to save space)
+
+**Next steps after generating datasets:**
+1. **Test the complete pipeline** (recommended first):
+   ```bash
+   bash TEST_WORKFLOW.sh
+   ```
+   This runs a complete end-to-end test: dataset → training → prediction → evaluation
+
+2. **Train on a specific dataset** (see Training section below)
+
+3. **Generate predictions and evaluate** (see Evaluation section below)
 
 ### Option 2: Use Included Sample Data (Fastest)
 
