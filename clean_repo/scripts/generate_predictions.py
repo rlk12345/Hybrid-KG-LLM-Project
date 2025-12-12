@@ -68,32 +68,83 @@ def generate_predictions(model_path: str, test_jsonl: str, output_jsonl: str, ma
         else:
             new_text = generated_text.strip()
         
-        # Try to extract relation from the prompt context first
-        # Look for pattern: -[relation]->
+        # Extract prediction from model's generated text only (not from prompt!)
+        # The prompt contains the answer, so we must only use what the model generates
         import re
-        relation_match = re.search(r'-\[([^\]]+)\]->', prompt)
-        expected_relation = relation_match.group(1) if relation_match else None
         
-        # Try to find relation word in generated text
+        # First, try to extract relation from the pattern -[relation]-> in generated text
+        # The model might generate the full triple format
+        relation_pattern = r'-\[([^\]]+)\]->'
+        relation_matches = re.findall(relation_pattern, new_text)
+        
         prediction = None
-        if expected_relation:
-            # Check if the relation word appears in generated text
-            if expected_relation.lower() in new_text.lower():
-                prediction = expected_relation
-            # Check for variations (e.g., "treat" vs "treats")
-            elif expected_relation.rstrip('s').lower() in new_text.lower():
-                prediction = expected_relation
+        if relation_matches:
+            # Extract relations from prompt to compare
+            prompt_relations = set(re.findall(relation_pattern, prompt))
+            
+            # If model generated a relation pattern, use it (even if same as prompt - model learned it)
+            # Prefer the last one if multiple (model might generate multiple triples)
+            if relation_matches:
+                prediction = relation_matches[-1].strip().lower()
         
-        # If not found, try to extract first meaningful word
+        # If no relation pattern found, try to extract from plain text
         if not prediction:
-            # Remove common words and take first content word
+            # Extract entity names from prompt to filter them out
+            entity_pattern = r'\(([^)]+)\)'
+            entities_in_prompt = set(re.findall(entity_pattern, prompt))
+            entities_lower = {e.lower() for e in entities_in_prompt}
+            
+            # Also extract entity names from generated text to filter
+            entities_in_generated = set(re.findall(entity_pattern, new_text))
+            entities_lower.update({e.lower() for e in entities_in_generated})
+            
+            # Common relation words (KG relations are usually verbs or action words)
+            common_relations = {'treats', 'targets', 'causes', 'prevents', 'inhibits', 'activates', 
+                               'regulates', 'interacts', 'binds', 'metabolizes', 'produces', 
+                               'consumes', 'upregulates', 'downregulates', 'associated', 'related',
+                               'treat', 'target', 'cause', 'prevent', 'inhibit', 'activate',
+                               'regulate', 'interact', 'bind', 'metabolize', 'produce', 'consume'}
+            
+            # Remove common words and extract meaningful words
             words = new_text.split()
-            stop_words = {'is', 'a', 'an', 'the', 'that', 'used', 'to', 'and', 'or', 'in', 'on', 'at'}
-            content_words = [w for w in words if w.lower() not in stop_words and len(w) > 2]
-            if content_words:
-                prediction = content_words[0].strip('.,!?;:')
-            else:
-                prediction = words[0] if words else new_text[:20]
+            stop_words = {'is', 'a', 'an', 'the', 'that', 'used', 'to', 'and', 'or', 'in', 'on', 'at', 'for', 'with', 'by', 'between', 'entity', 'process', 'biological', 'answer'}
+            content_words = [w.strip('.,!?;:()[]{}').lower() for w in words 
+                            if w.lower() not in stop_words 
+                            and len(w.strip('.,!?;:()[]{}')) > 2
+                            and w.strip('.,!?;:()[]{}').lower() not in entities_lower]  # Filter out entity names
+            
+            # Prioritize words that are known relation words
+            for word in content_words:
+                word_clean = word.strip('.,!?;:()[]{}')
+                # Check if it's a known relation word (exact match)
+                if word_clean in common_relations:
+                    prediction = word_clean
+                    break
+                # Check if it's a known relation with common suffixes
+                base_word = word_clean.rstrip('s')
+                if base_word in common_relations:
+                    prediction = word_clean  # Keep the original form
+                    break
+            
+            # If no known relation found, look for verb-like words
+            if not prediction:
+                for word in content_words:
+                    word_clean = word.strip('.,!?;:()[]{}')
+                    # Check if it ends with common verb suffixes
+                    if word_clean.endswith(('s', 'es', 'ed', 'ing')) and len(word_clean) > 4:
+                        prediction = word_clean
+                        break
+            
+            # Last resort: take first content word that's not an entity
+            if not prediction and content_words:
+                prediction = content_words[0].strip('.,!?;:()[]{}')
+        
+        # Final fallback
+        if not prediction:
+            prediction = new_text[:20].strip().lower()
+        
+        # Clean up prediction
+        prediction = prediction.strip().lower()
         
         predictions.append({
             "prompt": prompt,

@@ -51,12 +51,12 @@ bash TEST_WORKFLOW.sh
 ```
 
 **What this does:**
-- Creates a small test dataset (20 samples)
+- Creates a test dataset (50 samples)
 - Trains a model (GPT-2, safe on any machine)
 - Generates predictions
 - Evaluates and shows results
 
-**Time:** 5-10 minutes
+**Time:** 8-15 minutes
 
 **Expected output:** You'll see accuracy metrics confirming the pipeline works.
 
