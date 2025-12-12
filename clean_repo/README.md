@@ -39,8 +39,20 @@ bash scripts/generate_all_datasets.sh
 **What this does:**
 - Creates 5 dataset variants in `data/` directories
 - Each dataset has train/val/test splits ready for training
+- Automatically generates synthetic data if needed (e.g., for paper_eval which needs 200 samples)
 
 **Time:** 1-2 minutes
+
+**Note:** If you see warnings about small datasets, the script will automatically generate synthetic data to ensure you have enough samples for meaningful evaluation.
+
+**Important:** If you previously generated datasets and they have too few samples (e.g., only 2 test samples), you need to regenerate them:
+```bash
+# Remove old datasets
+rm -rf data/paper_eval data/hybrid data/hybrid_large data/hybrid_simcse data/hybrid_simcse_default
+
+# Regenerate with proper sample counts
+bash scripts/generate_all_datasets.sh
+```
 
 ### Step 4: Test the Complete Pipeline (Recommended)
 
