@@ -1,0 +1,503 @@
+# Hybrid-KG-LLM-Project
+
+Hybrid multi-hop reasoning over knowledge graphs with LLM alignment using Direct Preference Optimization (DPO). This repository provides a complete pipeline for training and evaluating LLMs on knowledge graph reasoning tasks.
+
+## Overview
+
+This project combines:
+- **Knowledge Graph Data Processing**: Prepare datasets from KG triples with optional visual graph rendering
+- **DPO Training**: Fine-tune LLMs using Direct Preference Optimization on hybrid KG reasoning examples
+- **Evaluation**: Scripts for link prediction and multi-hop QA evaluation
+
+## Prerequisites
+
+### System Requirements
+
+**Minimum (for testing with GPT-2):**
+- Python 3.10 or higher
+- 4GB RAM
+- CPU-only training works
+
+**Recommended (for larger models):**
+- Python 3.10 or higher
+- GPU with 16GB+ VRAM (for models like Mistral-7B)
+- OR 16GB+ RAM for CPU training
+
+### System Dependencies
+
+**Required:**
+- Git
+- Graphviz (for graph visualization)
+
+**Install Graphviz:**
+
+- **macOS**: 
+  ```bash
+  brew install graphviz
+  ```
+
+- **Ubuntu/Debian**: 
+  ```bash
+  sudo apt-get install graphviz
+  ```
+
+- **Windows**: Download from [Graphviz website](https://graphviz.org/download/) or use `choco install graphviz`
+
+## Installation
+
+### Step 1: Clone the Repository
+
+```bash
+git clone <your-repo-url>
+cd Hybrid-KG-LLM-Project
+```
+
+### Step 2: Create Python Virtual Environment
+
+```bash
+# Using venv
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Or using conda
+conda create -n hybridkg python=3.10
+conda activate hybridkg
+```
+
+### Step 3: Install PyTorch
+
+Install PyTorch matching your system. Visit [PyTorch website](https://pytorch.org/get-started/locally/) for the correct command, or use:
+
+```bash
+# CPU only
+pip install torch torchvision torchaudio
+
+# CUDA (adjust version as needed)
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+```
+
+### Step 4: Install Python Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### Step 5: Set PYTHONPATH
+
+**Important**: You must set the PYTHONPATH to the project root for imports to work correctly.
+
+**Linux/macOS:**
+```bash
+# Add to ~/.bashrc or ~/.zshrc for persistence
+export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+
+# Or run in each terminal session:
+export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+```
+
+**Windows PowerShell:**
+```powershell
+$env:PYTHONPATH = "$env:PYTHONPATH;$PWD"
+```
+
+**Windows CMD:**
+```cmd
+set PYTHONPATH=%PYTHONPATH%;%CD%
+```
+
+### Step 6: Verify Installation
+
+```bash
+python verify_setup.py
+```
+
+This checks:
+- All Python imports work correctly
+- Required dependencies are installed
+- Sample data files are present
+- Graphviz is installed
+
+If all checks pass, you're ready to proceed!
+
+## Quick Start
+
+### Option 1: Use Included Sample Data (Fastest)
+
+The repository includes sample data files for immediate testing:
+
+```bash
+# Step 1: Prepare dataset (creates train/val/test splits)
+python scripts/prepare_hybrid_dataset.py \
+  --triples_jsonl data/sample_triples.jsonl \
+  --out_dir data/hybrid \
+  --limit 50
+
+# Step 2: Train model (uses GPT-2, safe on any machine)
+python -c "
+from src.hybrid_dpo import train_hybrid_dpo
+train_hybrid_dpo({
+    'data': {
+        'train_path': 'data/hybrid/train.jsonl',
+        'eval_path': 'data/hybrid/val.jsonl'
+    },
+    'dpo': {
+        'output_dir': 'outputs/hybrid-dpo',
+        'num_train_epochs': 2,
+        'per_device_train_batch_size': 4,
+        'learning_rate': 5e-6
+    }
+})
+"
+
+# Step 3: Generate predictions
+python scripts/generate_predictions.py \
+  --model_path outputs/hybrid-dpo \
+  --test_jsonl data/hybrid/test.jsonl \
+  --output_jsonl outputs/predictions.jsonl
+
+# Step 4: Evaluate
+python scripts/eval_multihop_qa.py \
+  --gold_jsonl data/hybrid/test.jsonl \
+  --pred_jsonl outputs/predictions.jsonl
+```
+
+### Option 2: Download PRIMEKG Data (Full Dataset)
+
+For larger experiments:
+
+```bash
+# Step 1: Download PRIMEKG
+python scripts/primekg_download.py --target_dir third_party/PrimeKG
+
+# Step 2: Create subset (optional, for faster experiments)
+python scripts/primekg_subset.py \
+  --primekg_dir third_party/PrimeKG \
+  --out_dir data/primekg \
+  --limit_nodes 50000
+
+# Step 3: Convert to JSONL format (if needed)
+python scripts/primekg_convert_from_kgcsv.py \
+  --kgcsv_path data/primekg/kg.csv \
+  --out_jsonl data/primekg_triples.jsonl
+
+# Step 4: Prepare hybrid dataset
+python scripts/prepare_hybrid_dataset.py \
+  --triples_jsonl data/primekg_triples.jsonl \
+  --out_dir data/hybrid \
+  --limit 1000
+
+# Step 5: Train (same as Option 1, Step 2)
+# Step 6: Generate predictions (same as Option 1, Step 3)
+# Step 7: Evaluate (same as Option 1, Step 4)
+```
+
+## Detailed Usage
+
+### 1. Prepare Dataset
+
+The `prepare_hybrid_dataset.py` script creates train/val/test splits from KG triples:
+
+```bash
+python scripts/prepare_hybrid_dataset.py \
+  --triples_jsonl <path_to_triples.jsonl> \
+  --out_dir <output_directory> \
+  --limit <number_of_samples> \
+  [--train_ratio 0.8] \
+  [--val_ratio 0.1] \
+  [--test_ratio 0.1] \
+  [--seed 42] \
+  [--no_images] \
+  [--use_sns] \
+  [--entity_texts_jsonl <path_to_entity_texts.jsonl>]
+```
+
+**Arguments:**
+- `--triples_jsonl`: Path to input triples file (JSONL format: `{"head": "...", "relation": "...", "tail": "..."}`)
+- `--out_dir`: Output directory (will contain `train.jsonl`, `val.jsonl`, `test.jsonl`, and optionally `images/`)
+- `--limit`: Maximum number of samples to process
+- `--train_ratio`, `--val_ratio`, `--test_ratio`: Split ratios (must sum to 1.0)
+- `--seed`: Random seed for reproducibility
+- `--no_images`: Skip graph image rendering (faster)
+- `--use_sns`: Use SimCSE-based neighbor ranking
+- `--entity_texts_jsonl`: Path to entity text descriptions (required if `--use_sns`)
+
+**Output:**
+- `train.jsonl`, `val.jsonl`, `test.jsonl`: Dataset splits
+- `images/`: Rendered graph visualizations (if `--no_images` not used)
+
+### 2. Train Model
+
+#### Python API (Recommended)
+
+```python
+from src.hybrid_dpo import train_hybrid_dpo
+
+# Basic usage (GPT-2, safe on any machine)
+train_hybrid_dpo({
+    "data": {
+        "train_path": "data/hybrid/train.jsonl",
+        "eval_path": "data/hybrid/val.jsonl"
+    },
+    "dpo": {
+        "output_dir": "outputs/hybrid-dpo",
+        "num_train_epochs": 2,
+        "per_device_train_batch_size": 4,
+        "learning_rate": 5e-6
+    }
+})
+
+# Using large models (requires GPU or 16GB+ RAM)
+train_hybrid_dpo({
+    "model": {
+        "base_model_name_or_path": "mistralai/Mistral-7B-Instruct-v0.2"
+    },
+    "data": {
+        "train_path": "data/hybrid/train.jsonl",
+        "eval_path": "data/hybrid/val.jsonl"
+    },
+    "dpo": {
+        "output_dir": "outputs/hybrid-dpo",
+        "beta": 0.5,
+        "num_train_epochs": 2,
+        "per_device_train_batch_size": 1,
+        "gradient_accumulation_steps": 4
+    }
+})
+```
+
+#### Shell Script (Linux/macOS)
+
+```bash
+export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+export TRAIN_JSONL="data/hybrid/train.jsonl"
+export EVAL_JSONL="data/hybrid/val.jsonl"
+export OUTPUT_DIR="outputs/hybrid-dpo"
+export EPOCHS=2
+export BSZ=4
+export LR=5e-6
+
+bash scripts/train_hybrid_dpo.sh
+```
+
+#### PowerShell (Windows)
+
+```powershell
+$env:PYTHONPATH = "$env:PYTHONPATH;$PWD"
+$env:TRAIN_JSONL = "data/hybrid/train.jsonl"
+$env:EVAL_JSONL = "data/hybrid/val.jsonl"
+$env:OUTPUT_DIR = "outputs/hybrid-dpo"
+$env:EPOCHS = 2
+$env:BSZ = 4
+$env:LR = 5e-6
+
+pwsh scripts/train_hybrid_dpo.ps1
+```
+
+**Training Parameters:**
+- `output_dir`: Where to save checkpoints and logs
+- `num_train_epochs`: Number of training epochs
+- `per_device_train_batch_size`: Batch size per device
+- `learning_rate`: Learning rate (default: 5e-6)
+- `beta`: DPO beta parameter (default: 0.1)
+- `gradient_accumulation_steps`: Gradient accumulation steps
+- `logging_steps`: How often to log
+- `save_steps`: How often to save checkpoints
+- `deepspeed`: Path to DeepSpeed config (optional, for large models)
+
+**Output:**
+- Checkpoints saved in `output_dir/checkpoint-*/`
+- Training logs and metrics
+
+### 3. Generate Predictions
+
+```bash
+python scripts/generate_predictions.py \
+  --model_path <path_to_trained_model> \
+  --test_jsonl <path_to_test_data> \
+  --output_jsonl <path_to_output_predictions> \
+  [--max_new_tokens 20] \
+  [--batch_size 8]
+```
+
+**Arguments:**
+- `--model_path`: Path to trained model directory (contains `config.json`, `model.safetensors`, etc.)
+- `--test_jsonl`: Path to test dataset
+- `--output_jsonl`: Where to save predictions
+- `--max_new_tokens`: Maximum tokens to generate
+- `--batch_size`: Batch size for inference
+
+**Output:**
+- JSONL file with predictions (one per line)
+
+### 4. Evaluate Results
+
+#### Multi-hop QA Evaluation
+
+```bash
+python scripts/eval_multihop_qa.py \
+  --gold_jsonl <path_to_gold_answers> \
+  --pred_jsonl <path_to_predictions> \
+  [--output_json <path_to_output_metrics>]
+```
+
+**Output:** Accuracy metric (printed to stdout and optionally saved to JSON)
+
+#### Link Prediction Evaluation
+
+```bash
+python scripts/eval_link_prediction.py \
+  --triples_jsonl <path_to_test_triples> \
+  --predictions_jsonl <path_to_predictions> \
+  [--output_json <path_to_output_metrics>]
+```
+
+**Output:** MRR and Hits@10 metrics (printed to stdout and optionally saved to JSON)
+
+#### Comprehensive Evaluation
+
+```bash
+python scripts/comprehensive_eval.py \
+  --gold_jsonl <path_to_gold_answers> \
+  --pred_jsonl <path_to_predictions> \
+  --output_json <path_to_output_metrics>
+```
+
+**Output:** Detailed metrics including accuracy, precision, recall, F1, and per-relation statistics
+
+## Configuration
+
+Configuration is managed through `src/config.py`. Key settings can be overridden when calling `train_hybrid_dpo()`:
+
+- **Model**: `base_model_name_or_path` (default: `"gpt2"`)
+- **Data**: `train_path`, `eval_path`
+- **DPO**: `beta`, `num_train_epochs`, `learning_rate`, etc.
+- **SNS**: `similarity_threshold`, `top_k` (for SimCSE ranking)
+
+See `src/config.py` for all available options.
+
+## Project Structure
+
+```
+.
+├── src/                    # Core source code
+│   ├── config.py          # Configuration management
+│   ├── hybrid_dpo.py      # DPO training entrypoint
+│   ├── kg_data.py         # KG data loading utilities
+│   ├── prompting.py       # Prompt templates
+│   ├── sns_ranker.py      # SimCSE-based ranking
+│   ├── kg_visualize.py    # Graph visualization
+│   └── ...
+├── scripts/               # Executable scripts
+│   ├── prepare_hybrid_dataset.py
+│   ├── train_hybrid_dpo.sh
+│   ├── generate_predictions.py
+│   ├── eval_multihop_qa.py
+│   └── ...
+├── data/                  # Data files
+│   ├── sample_triples.jsonl
+│   └── entity_texts.jsonl
+├── gita_module/          # DeepSpeed configurations
+├── requirements.txt      # Python dependencies
+├── verify_setup.py      # Setup verification script
+└── README.md            # This file
+```
+
+## Troubleshooting
+
+### Import Errors
+
+**Problem:** `ModuleNotFoundError: No module named 'src'`
+
+**Solution:** Set PYTHONPATH:
+```bash
+export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+```
+
+### Graphviz Errors
+
+**Problem:** `FileNotFoundError: [Errno 2] No such file or directory: 'dot'`
+
+**Solution:** Install Graphviz system package (see Prerequisites section).
+
+### CUDA/GPU Issues
+
+**Problem:** CUDA out of memory or GPU not detected
+
+**Solution:**
+- Reduce batch size: `"per_device_train_batch_size": 2`
+- Use CPU: Set device to `"cpu"` in config
+- Use gradient accumulation: Increase `"gradient_accumulation_steps"`
+
+### Missing Data Files
+
+**Problem:** `FileNotFoundError: data/sample_triples.jsonl`
+
+**Solution:** The sample files should be included in the repository. If missing, check that you cloned the full repository.
+
+### Model Download Issues
+
+**Problem:** Hugging Face model download fails
+
+**Solution:**
+- Check internet connection
+- Set `HF_HOME` environment variable if using custom cache location
+- For large models, consider using `huggingface-cli` to download manually
+
+## Example Workflow
+
+Complete end-to-end example:
+
+```bash
+# 1. Verify setup
+python verify_setup.py
+
+# 2. Prepare dataset
+python scripts/prepare_hybrid_dataset.py \
+  --triples_jsonl data/sample_triples.jsonl \
+  --out_dir data/hybrid \
+  --limit 50
+
+# 3. Train model
+python -c "
+from src.hybrid_dpo import train_hybrid_dpo
+train_hybrid_dpo({
+    'data': {
+        'train_path': 'data/hybrid/train.jsonl',
+        'eval_path': 'data/hybrid/val.jsonl'
+    },
+    'dpo': {
+        'output_dir': 'outputs/my_model',
+        'num_train_epochs': 2,
+        'per_device_train_batch_size': 4,
+        'learning_rate': 5e-6
+    }
+})
+"
+
+# 4. Generate predictions
+python scripts/generate_predictions.py \
+  --model_path outputs/my_model \
+  --test_jsonl data/hybrid/test.jsonl \
+  --output_jsonl outputs/my_predictions.jsonl
+
+# 5. Evaluate
+python scripts/eval_multihop_qa.py \
+  --gold_jsonl data/hybrid/test.jsonl \
+  --pred_jsonl outputs/my_predictions.jsonl
+```
+
+## References
+
+This project builds upon:
+- [SNS](https://github.com/ruili33/SNS)
+- [GITA](https://github.com/WEIYanbin1999/GITA)
+- [GraphWiz](https://github.com/Graph-Reasoning-LLM)
+
+## License
+
+See individual third-party licenses in respective directories.
+
+## Contact
+
+For issues or questions, please open an issue on the repository.
+
