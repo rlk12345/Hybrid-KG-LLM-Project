@@ -2,6 +2,37 @@
 
 Hybrid multi-hop reasoning over knowledge graphs with LLM alignment using Direct Preference Optimization (DPO). This repository provides a complete pipeline for training and evaluating LLMs on knowledge graph reasoning tasks.
 
+## Quick Reference for TAs/Reviewers
+
+**To reproduce all results:**
+
+```bash
+# 1. Install dependencies (see Installation section)
+pip install -r requirements.txt
+export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+
+# 2. Verify setup
+python verify_setup.py
+
+# 3. Generate all dataset variants
+bash scripts/generate_all_datasets.sh
+
+# 4. Train model on paper evaluation dataset
+python -c "
+from src.hybrid_dpo import train_hybrid_dpo
+train_hybrid_dpo({
+    'data': {'train_path': 'data/paper_eval/train.jsonl', 'eval_path': 'data/paper_eval/val.jsonl'},
+    'dpo': {'output_dir': 'outputs/paper_eval_model', 'num_train_epochs': 3, 'per_device_train_batch_size': 1, 'learning_rate': 5e-6, 'gradient_accumulation_steps': 2}
+})
+"
+
+# 5. Generate predictions and evaluate
+python scripts/generate_predictions.py --model_path outputs/paper_eval_model --test_jsonl data/paper_eval/test.jsonl --output_jsonl outputs/predictions.jsonl
+python scripts/comprehensive_eval.py --gold_jsonl data/paper_eval/test.jsonl --pred_jsonl outputs/predictions.jsonl --output_json outputs/results.json
+```
+
+**All dataset variants** (hybrid, hybrid_simcse, hybrid_large, paper_eval, etc.) can be generated using `scripts/generate_all_datasets.sh`. See "Dataset Generation" section for details.
+
 ## Overview
 
 This project combines:
@@ -121,12 +152,30 @@ If all checks pass, you're ready to proceed!
 
 ## Quick Start
 
-### Option 1: Use Included Sample Data (Fastest)
+### Option 1: Generate All Dataset Variants (Recommended for Reproducibility)
+
+To reproduce all datasets used in experiments:
+
+```bash
+# Generate all dataset variants at once
+bash scripts/generate_all_datasets.sh
+```
+
+This creates:
+- `data/hybrid/` - Basic dataset (50 samples)
+- `data/hybrid_large/` - Larger dataset (100 samples)
+- `data/hybrid_simcse/` - With SimCSE ranking (threshold 0.8)
+- `data/hybrid_simcse_default/` - With SimCSE ranking (default settings)
+- `data/paper_eval/` - Final evaluation dataset (200 samples)
+
+Then proceed with training and evaluation (see below).
+
+### Option 2: Use Included Sample Data (Fastest)
 
 The repository includes sample data files for immediate testing:
 
 ```bash
-# Step 1: Prepare dataset (creates train/val/test splits)
+# Step 1: Prepare basic dataset (creates train/val/test splits)
 python scripts/prepare_hybrid_dataset.py \
   --triples_jsonl data/sample_triples.jsonl \
   --out_dir data/hybrid \
@@ -161,9 +210,9 @@ python scripts/eval_multihop_qa.py \
   --pred_jsonl outputs/predictions.jsonl
 ```
 
-### Option 2: Download PRIMEKG Data (Full Dataset)
+### Option 3: Download and Process PRIMEKG Data (Full Dataset)
 
-For larger experiments:
+For experiments with the full PrimeKG dataset:
 
 ```bash
 # Step 1: Download PRIMEKG
@@ -180,15 +229,103 @@ python scripts/primekg_convert_from_kgcsv.py \
   --kgcsv_path data/primekg/kg.csv \
   --out_jsonl data/primekg_triples.jsonl
 
-# Step 4: Prepare hybrid dataset
+# Step 4: Prepare hybrid dataset from PrimeKG
 python scripts/prepare_hybrid_dataset.py \
   --triples_jsonl data/primekg_triples.jsonl \
-  --out_dir data/hybrid \
+  --out_dir data/primekg/hybrid_minilm_smoke \
   --limit 1000
 
-# Step 5: Train (same as Option 1, Step 2)
-# Step 6: Generate predictions (same as Option 1, Step 3)
-# Step 7: Evaluate (same as Option 1, Step 4)
+# Step 5: Train (same as Option 2, Step 2)
+# Step 6: Generate predictions (same as Option 2, Step 3)
+# Step 7: Evaluate (same as Option 2, Step 4)
+```
+
+## Dataset Generation
+
+### Generating All Dataset Variants
+
+To reproduce all datasets used in the experiments, run:
+
+```bash
+bash scripts/generate_all_datasets.sh
+```
+
+This script generates:
+- **data/hybrid/**: Basic dataset (50 samples, 80/10/10 split)
+- **data/hybrid_large/**: Larger dataset (100 samples, 80/10/10 split)
+- **data/hybrid_simcse/**: With SimCSE-based neighbor ranking (threshold 0.8)
+- **data/hybrid_simcse_default/**: With SimCSE ranking using default settings
+- **data/paper_eval/**: Final evaluation dataset (200 samples, 70/15/15 split, no images)
+
+### Generating Individual Datasets
+
+You can also generate datasets individually:
+
+#### Basic Hybrid Dataset
+
+```bash
+python scripts/prepare_hybrid_dataset.py \
+  --triples_jsonl data/sample_triples.jsonl \
+  --out_dir data/hybrid \
+  --limit 50 \
+  --train_ratio 0.8 \
+  --val_ratio 0.1 \
+  --test_ratio 0.1 \
+  --seed 42
+```
+
+#### Hybrid with SimCSE Ranking
+
+```bash
+python scripts/prepare_hybrid_dataset.py \
+  --triples_jsonl data/sample_triples.jsonl \
+  --out_dir data/hybrid_simcse \
+  --limit 50 \
+  --use_sns \
+  --entity_texts_jsonl data/entity_texts.jsonl \
+  --sns_top_k 5 \
+  --sns_threshold 0.8 \
+  --seed 42
+```
+
+#### Paper Evaluation Dataset
+
+```bash
+python scripts/prepare_hybrid_dataset.py \
+  --triples_jsonl data/sample_triples.jsonl \
+  --out_dir data/paper_eval \
+  --limit 200 \
+  --train_ratio 0.7 \
+  --val_ratio 0.15 \
+  --test_ratio 0.15 \
+  --seed 42 \
+  --no_images
+```
+
+#### PrimeKG Dataset Processing
+
+For full PrimeKG experiments:
+
+```bash
+# 1. Download PrimeKG
+python scripts/primekg_download.py --target_dir third_party/PrimeKG
+
+# 2. Create subset (optional)
+python scripts/primekg_subset.py \
+  --primekg_dir third_party/PrimeKG \
+  --out_dir data/primekg \
+  --limit_nodes 50000
+
+# 3. Convert to JSONL
+python scripts/primekg_convert_from_kgcsv.py \
+  --kgcsv_path data/primekg/kg.csv \
+  --out_jsonl data/primekg_triples.jsonl
+
+# 4. Prepare hybrid dataset
+python scripts/prepare_hybrid_dataset.py \
+  --triples_jsonl data/primekg_triples.jsonl \
+  --out_dir data/primekg/hybrid_minilm_smoke \
+  --limit 1000
 ```
 
 ## Detailed Usage
@@ -388,14 +525,26 @@ See `src/config.py` for all available options.
 │   ├── kg_visualize.py    # Graph visualization
 │   └── ...
 ├── scripts/               # Executable scripts
-│   ├── prepare_hybrid_dataset.py
-│   ├── train_hybrid_dpo.sh
-│   ├── generate_predictions.py
-│   ├── eval_multihop_qa.py
+│   ├── prepare_hybrid_dataset.py    # Main dataset preparation
+│   ├── generate_all_datasets.sh     # Generate all dataset variants
+│   ├── train_hybrid_dpo.sh          # Training launcher
+│   ├── generate_predictions.py      # Generate model predictions
+│   ├── eval_multihop_qa.py          # Multi-hop QA evaluation
+│   ├── eval_link_prediction.py      # Link prediction evaluation
+│   ├── comprehensive_eval.py        # Comprehensive evaluation
+│   ├── primekg_download.py          # Download PrimeKG
+│   ├── primekg_subset.py            # Create PrimeKG subset
+│   ├── primekg_convert_from_kgcsv.py # Convert PrimeKG to JSONL
 │   └── ...
 ├── data/                  # Data files
-│   ├── sample_triples.jsonl
-│   └── entity_texts.jsonl
+│   ├── sample_triples.jsonl    # Sample KG triples (included)
+│   ├── entity_texts.jsonl      # Entity text descriptions (included)
+│   ├── hybrid/                 # Generated: basic dataset
+│   ├── hybrid_large/           # Generated: larger dataset
+│   ├── hybrid_simcse/          # Generated: with SimCSE ranking
+│   ├── hybrid_simcse_default/  # Generated: SimCSE default
+│   ├── paper_eval/            # Generated: final evaluation dataset
+│   └── primekg/               # Generated: PrimeKG datasets (if using PrimeKG)
 ├── gita_module/          # DeepSpeed configurations
 ├── requirements.txt      # Python dependencies
 ├── verify_setup.py      # Setup verification script
@@ -443,9 +592,53 @@ export PYTHONPATH="${PYTHONPATH}:$(pwd)"
 - Set `HF_HOME` environment variable if using custom cache location
 - For large models, consider using `huggingface-cli` to download manually
 
+## Reproducing Results
+
+### For TAs/Reviewers: Complete Reproduction Workflow
+
+To reproduce all results from the paper:
+
+```bash
+# 1. Verify setup
+python verify_setup.py
+
+# 2. Generate all dataset variants
+bash scripts/generate_all_datasets.sh
+
+# 3. Train on paper evaluation dataset
+python -c "
+from src.hybrid_dpo import train_hybrid_dpo
+train_hybrid_dpo({
+    'data': {
+        'train_path': 'data/paper_eval/train.jsonl',
+        'eval_path': 'data/paper_eval/val.jsonl'
+    },
+    'dpo': {
+        'output_dir': 'outputs/paper_eval_model',
+        'num_train_epochs': 3,
+        'per_device_train_batch_size': 1,
+        'learning_rate': 5e-6,
+        'gradient_accumulation_steps': 2
+    }
+})
+"
+
+# 4. Generate predictions
+python scripts/generate_predictions.py \
+  --model_path outputs/paper_eval_model \
+  --test_jsonl data/paper_eval/test.jsonl \
+  --output_jsonl outputs/paper_eval_predictions.jsonl
+
+# 5. Comprehensive evaluation
+python scripts/comprehensive_eval.py \
+  --gold_jsonl data/paper_eval/test.jsonl \
+  --pred_jsonl outputs/paper_eval_predictions.jsonl \
+  --output_json outputs/paper_eval_results.json
+```
+
 ## Example Workflow
 
-Complete end-to-end example:
+Complete end-to-end example with basic dataset:
 
 ```bash
 # 1. Verify setup
